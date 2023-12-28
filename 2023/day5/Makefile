@@ -8,4 +8,4 @@ part1: part1.c
 
 part2: part2.c
 	mkdir -p $(output_dir)
-	gcc part2.c -g -o $(output_dir)/part2
+	gcc part2.c -o $(output_dir)/part2
