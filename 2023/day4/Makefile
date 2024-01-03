@@ -1,4 +1,4 @@
-output_dir := bin
+output_dir := .
 
 all: part1 part2
 

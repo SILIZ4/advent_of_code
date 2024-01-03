@@ -18,14 +18,17 @@ size_t search_chars_first_pos(const char str[], const char chars[]){
 
 
 int main(int nargs, char *argv[]){
-    if (nargs != 5) {
+    if (nargs != 2) {
         fprintf(stderr, "Missing args.\n");
         return 1;
     }
     FILE* file = fopen(argv[1], "r");
-    const size_t n_red = atoi(argv[2]);
-    const size_t n_blue = atoi(argv[4]);
-    const size_t n_green = atoi(argv[3]);
+    /*const size_t n_red = atoi(argv[2]);*/
+    /*const size_t n_blue = atoi(argv[4]);*/
+    /*const size_t n_green = atoi(argv[3]);*/
+    const size_t n_red = 12;
+    const size_t n_blue = 13;
+    const size_t n_green = 14;
 
     const size_t buff_size=256;
     char buff[buff_size];

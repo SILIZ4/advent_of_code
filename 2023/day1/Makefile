@@ -1,4 +1,4 @@
-bin_dir := bin
+bin_dir := .
 
 all: part1 part2
 
