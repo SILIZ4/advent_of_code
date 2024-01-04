@@ -77,5 +77,5 @@ func main() {
         }
         cycleLength++
     }
-    println("Fartest position is", cycleLength/2)
+    println("Fartest position is", cycleLength/2+cycleLength%2)
 }
