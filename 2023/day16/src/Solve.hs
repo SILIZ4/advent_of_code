@@ -1,4 +1,4 @@
-module Solve (initPuzzle, countEnergized) where
+module Solve where
 
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -92,38 +92,51 @@ removeDuplicateTiles (n, m) = Set.fromList . filter (\(x, y) -> x < n && y < m) 
 countEnergized :: (Int, Int) -> Puzzle -> Int
 countEnergized (n, m) = Set.size . removeDuplicateTiles (n, m) . getEnergized . solve
 
-getInitBeam :: (Int, Int) -> Grid -> Beam
-getInitBeam (i, j) grid = case redirectBeam beam initTile of
-                            (Stopped _) -> beam
-                            redirected -> redirected
-                          where beam = Running (i, j) East
-                                initTile = fromJust $ Map.lookup (i, j) grid
+initBeams :: Beam -> Grid -> [Beam]
+initBeams beam grid = case processBeam grid beam of
+                            [] -> [beam]
+                            redirected -> map (replaceStopped beam) redirected
+        where replaceStopped beam b = case b of
+                (Stopped _) -> beam
+                (Running _ _) -> beam
 
-initPuzzle :: Grid -> Puzzle
-initPuzzle grid = Puzzle [getInitBeam (0, 0) grid] grid Set.empty
+initPuzzle :: Beam -> Grid -> Puzzle
+initPuzzle beam grid = Puzzle (initBeams beam grid) grid Set.empty
 
-solve :: Puzzle -> Puzzle
-solve p@(Puzzle [] _ _) = p
-solve (Puzzle ((Stopped _): bs) g seen) = solve (Puzzle bs g seen)
-solve (Puzzle (beam@(Running (i, j) dir): bs) grid seen) =
-    solve (Puzzle newBeams grid (Set.union seen newSeen))
-    where propagatedBeam = beamNextStop beam grid
-          (i', j') = case propagatedBeam of
+
+processBeam :: Grid -> Beam -> [Beam]
+processBeam grid beam =
+    case beam of
+          Stopped _ -> []
+          Running _ _ -> case dupedBeam of
+                  Nothing -> [newBeam]
+                  Just dup -> [newBeam, dup]
+    where (i', j') = case beam of
                 Stopped (x, y) ->  (x, y)
                 Running (x, y) _ -> (x, y)
           newTile = fromJust (Map.lookup (i', j') grid)
-          newBeam = redirectBeam propagatedBeam newTile
-          dupedBeam = duplicateBeam propagatedBeam newTile
-          newBeams = case propagatedBeam of
-                        Stopped _ -> bs
-                        Running _ _ -> if (i', j', dir) `Set.member` seen then
-                                bs -- There is a cycle
-                            else
-                                case dupedBeam of
-                                    Nothing -> newBeam : bs
-                                    Just dup -> newBeam : (dup: bs)
+          newBeam = redirectBeam beam newTile
+          dupedBeam = duplicateBeam beam newTile
+
+
+solve :: Puzzle -> Puzzle
+solve p@(Puzzle [] _ _) = p
+solve (Puzzle ((Stopped _): otherBeams) g seen) = solve (Puzzle otherBeams g seen)
+solve (Puzzle (beam@(Running (i, j) dir): otherBeams) grid seen) =
+    solve (Puzzle newBeams grid (Set.union seen newSeen))
+    where propagatedBeam = beamNextStop beam grid
           newSeen = Set.fromList [(r, s, dir) | r <- [min iAdjusted i'..max iAdjusted i'],
                                                 s <- [min jAdjusted j'..max jAdjusted j']]
+          (i', j') = case propagatedBeam of
+                Stopped (x, y) ->  (x, y)
+                Running (x, y) _ -> (x, y)
+          newBeams = case propagatedBeam of
+                Stopped _ -> otherBeams
+                Running _ _ -> if (i', j', dir) `Set.member` seen then
+                        otherBeams -- There is a cycle
+                    else
+                        processBeam grid propagatedBeam ++ otherBeams
+
           -- These shifts add out-of-bound tiles when beam is redirected on the boundary
           iAdjusted = case dir of
                         North -> i - 1
