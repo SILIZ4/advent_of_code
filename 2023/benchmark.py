@@ -63,8 +63,9 @@ if __name__ == "__main__":
             plt.bar(pos,
                     0 if result is None else result[0]["mean"],
                     yerr=0 if result is None else result[0]["stddev"],
-                    color=COLORS[language]+"99", ecolor=COLORS[language],
+                    color=COLORS[language]+"AA", ecolor=COLORS[language],
                     label=language if (day-1)%5 == 0 and part==1 else None,
+                    capsize=2,
                     width=2*width)
         print()
     plt.xticks(days)
