@@ -12,4 +12,4 @@ main = do
     args <- getArgs
     grid <- parseInput (head args)
     let size = (nrows grid, ncols grid) in
-        print $ dijkstra1 size grid (initHeap size)
+        print $ dijkstra2 size grid (initHeap size)
