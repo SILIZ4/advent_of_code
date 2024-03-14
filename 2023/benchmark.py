@@ -61,8 +61,8 @@ if __name__ == "__main__":
             result = run_benchmark(day, f"part{part}", language)
             print(f"  Part {part}: {format_res(result)}")
             plt.bar(pos,
-                    0 if result is None else result[0]["mean"],
-                    yerr=0 if result is None else result[0]["stddev"],
+                    0 if result is None else result[0]["mean"]*1000,
+                    yerr=0 if result is None else result[0]["stddev"]*1000,
                     color=COLORS[language]+"AA", ecolor=COLORS[language],
                     label=language if (day-1)%5 == 0 and part==1 else None,
                     capsize=2,
