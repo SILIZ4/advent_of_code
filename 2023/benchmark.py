@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-
 import subprocess as sp
 import os
 from pathlib import Path
 import json
-from itertools import chain
 
 from matplotlib import pyplot as plt
-import numpy as np
+
 
 MAIN_DIR = Path(__file__).resolve().parent
 DATA_FILE = "data.txt"
@@ -27,24 +25,31 @@ def format_res(res):
         return ""
     return f"{res[0]['mean']*1000:.1f} ± {res[0]['stddev']*1000:.1f} ms"
 
+def read_output(filename):
+    with open(filename, "r") as file_stream:
+        if (content := file_stream.read()) != "":
+            return json.loads(content)["results"]
+
 def run_benchmark(day, part, language):
     day_dir = MAIN_DIR.joinpath(f"day{day}")
-    command = ("mix run {}.exs" if language == "Elixir" else "./{}").format(part) + " " + DATA_FILE
     if not os.path.isdir(day_dir):
         return None
 
     output_file = str(CACHE_DIR.joinpath(str(day) + part + ".json"))
-    if not os.path.isfile(output_file):
-        try:
-            sp.check_call(f"hyperfine --export-json {output_file} "
-                          f"--runs {RUNS} --shell=none '{command}'",
-                          cwd=day_dir, shell=True,
-                          stdout=sp.DEVNULL, stderr=sp.DEVNULL)
-        except sp.CalledProcessError:
-            return None
+    if os.path.isfile(output_file):
+        if (output := read_output(output_file)) is not None:
+            return output
+    try:
+        command = ("mix run {}.exs" if language == "Elixir" else
+                   "./{}").format(part) + " " + DATA_FILE
+        sp.check_call(f"hyperfine --export-json {output_file} "
+                      f"--runs {RUNS} --shell=none '{command}'",
+                      cwd=day_dir, shell=True,
+                      stdout=sp.DEVNULL, stderr=sp.DEVNULL)
+        return read_output(output_file)
+    except sp.CalledProcessError:
+        return None
 
-    with open(output_file, "r") as file_stream:
-        return json.load(file_stream)["results"]
 
 if __name__ == "__main__":
     if not os.path.isdir(CACHE_DIR):
